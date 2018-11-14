@@ -9,6 +9,12 @@ import haxepunk.tweens.misc.*;
 import haxepunk.utils.*;
 import scenes.*;
 
+typedef PlayerStats = {
+    var health:Int;
+    var maxHealth:Int;
+    var quiver:Int;
+}
+
 class Player extends MemoryEntity {
     // Movement constants
     public static inline var RUN_ACCEL = 0.25;
@@ -47,9 +53,7 @@ class Player extends MemoryEntity {
     public static inline var HIT_KNOCKBACK = 5;
     public static inline var INVINCIBILITY_TIME = 1.5;
 
-    public static var playerHealth:Int;
-    public static var maxHealth:Int;
-    public static var quiver:Int;
+    public static var playerStats = new Map<Int, PlayerStats>();
 
     public var playerNumber(default, null):Int;
 
@@ -70,21 +74,51 @@ class Player extends MemoryEntity {
     private var quiverDisplay:Graphiclist;
     private var heartDisplay:Graphiclist;
 
-    static public function resetPlayerHealth() {
-        maxHealth = NORMAL_MAX_HEALTH;
-        if(GameScene.difficulty == GameScene.PLUSPLUS) {
-            maxHealth -= 2;
+    static public function areAllPlayersAtFullHealth() {
+        for(playerStat in playerStats) {
+            if(playerStat.health != playerStat.maxHealth) {
+                return false;
+            }
         }
-        else if(GameScene.difficulty == GameScene.PLUS) {
-            maxHealth -= 1;
+        return true;
+    }
+
+    public function setStartingHealthAndArrows() {
+        if(GameScene.depth == 1) {
+            playerStats[playerNumber] = {health: 0, maxHealth: 0, quiver: 0};
+            playerStats[playerNumber].maxHealth = NORMAL_MAX_HEALTH;
+            if(GameScene.difficulty == GameScene.PLUSPLUS) {
+                playerStats[playerNumber].maxHealth -= 2;
+            }
+            else if(GameScene.difficulty == GameScene.PLUS) {
+                playerStats[playerNumber].maxHealth -= 1;
+            }
+            playerStats[playerNumber].health = (
+                playerStats[playerNumber].maxHealth
+            );
+            if(GameScene.difficulty == GameScene.PLUSPLUS) {
+                playerStats[playerNumber].quiver = 1;
+            }
+            else {
+                playerStats[playerNumber].quiver = MAX_ARROWS;
+            }
         }
-        playerHealth = maxHealth;
+        else {
+            if(GameScene.difficulty != GameScene.PLUSPLUS) {
+                playerStats[playerNumber].quiver = MAX_ARROWS;
+            }
+        }
     }
 
     public function pickUpHeart() {
-        playerHealth++;
-        if(playerHealth > maxHealth) {
-            playerHealth = maxHealth;
+        playerStats[playerNumber].health++;
+        if(
+            playerStats[playerNumber].health
+            > playerStats[playerNumber].maxHealth
+        ) {
+            playerStats[playerNumber].health = (
+                playerStats[playerNumber].maxHealth
+            );
         }
         updateHeartDisplay();
     }
@@ -155,18 +189,7 @@ class Player extends MemoryEntity {
         lastWallWasRight = false;
         canMove = true;
 
-        if(
-            GameScene.depth == 1
-            && GameScene.difficulty == GameScene.PLUSPLUS
-        ) {
-            quiver = 1;
-        }
-        else if(
-            GameScene.difficulty == GameScene.PLUSPLUS && GameScene.depth == 1
-            || GameScene.difficulty != GameScene.PLUSPLUS
-        ) {
-            quiver = MAX_ARROWS;
-        }
+        setStartingHealthAndArrows();
         quiverDisplay = new Graphiclist();
         quiverDisplay.y = -20;
         addGraphic(quiverDisplay);
@@ -179,9 +202,21 @@ class Player extends MemoryEntity {
         updateHeartDisplay();
     }
 
+    public function getPlayerHealth() {
+        return playerStats[playerNumber].health;
+    }
+
+    public function getMaxHealth() {
+        return playerStats[playerNumber].maxHealth;
+    }
+
+    public function getQuiver() {
+        return playerStats[playerNumber].quiver;
+    }
+
     private function updateHeartDisplay() {
         heartDisplay.removeAll();
-        for(i in 0...playerHealth) {
+        for(i in 0...getPlayerHealth()) {
             var heart = new Image("graphics/heart.png");
             heart.smooth = false;
             heart.pixelSnapping = true;
@@ -190,9 +225,9 @@ class Player extends MemoryEntity {
         }
         var heart = new Image("graphics/heart.png");
         heartDisplay.x = (
-            width/2 - (playerHealth * heart.width / 2) - originX/2 + 1.5
+            width/2 - (getPlayerHealth() * heart.width / 2) - originX/2 + 1.5
         );
-        if(playerHealth >= maxHealth) {
+        if(getPlayerHealth() >= getMaxHealth()) {
             heartDisplay.color = 0xf4428c;
         }
         else {
@@ -203,7 +238,7 @@ class Player extends MemoryEntity {
 
     private function updateQuiverDisplay() {
         quiverDisplay.removeAll();
-        for(i in 0...quiver) {
+        for(i in 0...getQuiver()) {
             var arrowDisplay = new Image("graphics/arrowdisplay.png");
             arrowDisplay.smooth = false;
             arrowDisplay.pixelSnapping = true;
@@ -212,9 +247,9 @@ class Player extends MemoryEntity {
         }
         var arrowDisplay = new Image("graphics/arrowdisplay.png");
         quiverDisplay.x = (
-            width/2 - (quiver * arrowDisplay.width / 2) - originX/2 + 1.5
+            width/2 - (getQuiver() * arrowDisplay.width / 2) - originX/2 + 1.5
         );
-        if(quiver >= MAX_ARROWS) {
+        if(getQuiver() >= MAX_ARROWS) {
             quiverDisplay.color = 0xf4428c;
         }
         else {
@@ -224,7 +259,7 @@ class Player extends MemoryEntity {
     }
 
     private function updateDisplayHeights() {
-        if(quiver > 0) {
+        if(getQuiver() > 0) {
             heartDisplay.y = -30;
         }
         else {
@@ -317,10 +352,10 @@ class Player extends MemoryEntity {
         armsAndBow.visible = false;
         isFlashing = true;
         stopFlasher.reset(INVINCIBILITY_TIME);
-        playerHealth -= 1;
+        playerStats[playerNumber].health -= 1;
         updateHeartDisplay();
         MemoryEntity.allSfx['playerhit${HXP.choose(1, 2, 3)}'].play();
-        if(playerHealth <= 0) {
+        if(getPlayerHealth() <= 0) {
             die();
         }
     }
@@ -371,9 +406,9 @@ class Player extends MemoryEntity {
             }
         }
         var arrow = collide("arrow", x, y);
-        if(arrow != null && quiver < MAX_ARROWS && cast(arrow, Arrow).landed) {
+        if(arrow != null && getQuiver() < MAX_ARROWS && cast(arrow, Arrow).landed) {
             scene.remove(arrow);
-            quiver++;
+            playerStats[playerNumber].quiver++;
             updateQuiverDisplay();
             MemoryEntity.allSfx["arrowpickup"].play();
         }
@@ -578,14 +613,14 @@ class Player extends MemoryEntity {
             return;
         }
         if(Main.inputPressed("act", playerNumber)) {
-            if(quiver <= 0) {
+            if(getQuiver() <= 0) {
                 MemoryEntity.allSfx["outofarrows"].play();
                 return;
             }
             MemoryEntity.allSfx["arrowdraw"].play();
         }
         else if(Main.inputReleased("act", playerNumber)) {
-            if(quiver <= 0) {
+            if(getQuiver() <= 0) {
                 return;
             }
             var direction:Vector2;
@@ -642,7 +677,7 @@ class Player extends MemoryEntity {
             scene.add(arrow);
             MemoryEntity.allSfx['arrowshoot${HXP.choose(1, 2, 3)}'].play(0.5);
             MemoryEntity.allSfx["arrowdraw"].stop();
-            quiver--;
+            playerStats[playerNumber].quiver--;
             updateQuiverDisplay();
         }
     }
@@ -802,7 +837,7 @@ class Player extends MemoryEntity {
             armsAndBow.play("empty");
             armsAndBow.y = -8;
         }
-        else if(Main.inputCheck("act", playerNumber) && quiver > 0) {
+        else if(Main.inputCheck("act", playerNumber) && getQuiver() > 0) {
             var suffix:String;
             if(isCrouching) {
                 spriteAnimationName = "idle";

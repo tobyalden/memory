@@ -1188,10 +1188,10 @@ class GameScene extends Scene {
     }
 
     override public function update() {
-        //if(Key.pressed(Key.R)) {
-            //stopAllSounds();
-            //HXP.scene = new GameScene();
-        //}
+        if(Key.pressed(Key.R)) {
+            stopAllSounds();
+            HXP.scene = new GameScene();
+        }
         //if(Key.pressed(Key.H)) {
             //if(getInstance("heart") == null) {
                 //trace("no heart on this level");
@@ -1201,11 +1201,11 @@ class GameScene extends Scene {
                 //player.y = getInstance("heart").y - 40;
             //}
         //}
-        //if(Key.pressed(Key.N)) {
-            //depth++;
-            //stopAllSounds();
-            //HXP.scene = new GameScene();
-        //}
+        if(Key.pressed(Key.N)) {
+            depth++;
+            stopAllSounds();
+            HXP.scene = new GameScene();
+        }
         //if(Key.pressed(Key.D)) {
             //player.x = door.x;
             //player.y = door.y;
