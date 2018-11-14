@@ -48,7 +48,7 @@ class GameScene extends Scene {
 
     private var mapBlueprint:Grid;
     private var map:Grid;
-    private var player:Player;
+    private var players:Array<Player>;
     private var door:Door;
     private var key:DoorKey;
     private var curtain:Curtain;
@@ -70,6 +70,7 @@ class GameScene extends Scene {
     }
 
 	override public function begin() {
+        players = new Array<Player>();
         if(depth == 7) {
             loadBossRoom();
             return;
@@ -150,10 +151,14 @@ class GameScene extends Scene {
         lastMusicChoice = musicChoice;
     }
 
+    private function getPlayerOne() {
+        return players[0];
+    }
+
     private function removeEnemiesTooCloseToPlayer() {
         for(enemy in allEnemies) {
             var minDistance = depth == 7 ? 30 : MIN_ENEMY_DISTANCE_FROM_PLAYER;
-            if(enemy.distanceFrom(player) < minDistance) {
+            if(enemy.distanceFrom(getPlayerOne()) < minDistance) {
                 remove(enemy);
             }
         }
@@ -161,10 +166,11 @@ class GameScene extends Scene {
 
     private function loadBossRoom() {
         placeBossSegment();
-        player = new Player(
+        var player = new Player(
             allSegments[0].centerX - 6,
             allSegments[0].bottom - Segment.TILE_SIZE * 2 - 24
         );
+        players.push(player);
         add(player);
         var boss = new Boss(
             allSegments[0].centerX - 50,
@@ -189,8 +195,8 @@ class GameScene extends Scene {
         }
         for(arrowPoint in arrowPoints) {
             var awayFromPlayer = new Vector2(
-                player.centerX - arrowPoint.point.x,
-                player.centerY - arrowPoint.point.y
+                getPlayerOne().centerX - arrowPoint.point.x,
+                getPlayerOne().centerY - arrowPoint.point.y
             );
             awayFromPlayer.inverse();
             awayFromPlayer.normalize(Arrow.INITIAL_VELOCITY);
@@ -218,10 +224,24 @@ class GameScene extends Scene {
         Main.music.loop();
     }
 
+    public function getPlayerMidpoint() {
+        var averageX = 0.0;
+        var averageY = 0.0;
+        for(player in players) {
+            averageX += player.x;
+            averageY += player.y;
+        }
+        averageX /= players.length;
+        averageY /= players.length;
+        return new Vector2(averageX, averageY);
+    }
+
     public function spawnRoboPlant() {
         add(new RoboPlant(
-            player.x + (Random.random < 0.5 ? HXP.width/1.5 : -HXP.width/1.5),
-            player.y + (Random.random < 0.5 ? HXP.height/1.5 : -HXP.height/1.5)
+            getPlayerMidpoint().x
+            + (Random.random < 0.5 ? HXP.width/1.5 : -HXP.width/1.5),
+            getPlayerMidpoint().y
+            + (Random.random < 0.5 ? HXP.height/1.5 : -HXP.height/1.5)
         ));
     }
 
@@ -355,9 +375,13 @@ class GameScene extends Scene {
     private function addPlayers(numPlayers:Int = 1) {
         var playerStart = getRandomOpenGroundPoint(3);
         for(i in 0...numPlayers) {
-            player = new Player(playerStart.point.x, playerStart.point.y, i + 1);
+            var player = new Player(
+                playerStart.point.x, playerStart.point.y, i + 1
+            );
+            // TODO: Improve how multiple players are spread out
             player.x += 3 + 20 * i;
             player.y += Segment.TILE_SIZE - player.height;
+            players.push(player);
             add(player);
         }
         var disabledDoor = new MemoryEntity(
@@ -372,7 +396,7 @@ class GameScene extends Scene {
             var disabledDoorImg = new Image("graphics/drain.png");
             disabledDoor.setGraphic(disabledDoorImg);
             disabledDoor.x -= (disabledDoorImg.width - Segment.TILE_SIZE)/2;
-            disabledDoor.x += player.width/2;
+            disabledDoor.x += getPlayerOne().width/2;
             disabledDoor.y -= 70;
             disabledDoor.layer = 40;
             var shaftHeight = 700 * 5;
@@ -381,7 +405,7 @@ class GameScene extends Scene {
             );
             disabledShaft.setGraphic(disabledShaftImg);
             disabledShaft.x -= (disabledShaftImg.width - Segment.TILE_SIZE)/2;
-            disabledShaft.x += player.width/2;
+            disabledShaft.x += getPlayerOne().width/2;
             disabledShaft.y += Segment.TILE_SIZE - shaftHeight;
             disabledShaft.layer = 60;
         }
@@ -389,7 +413,7 @@ class GameScene extends Scene {
             var disabledDoorImg = new Image('graphics/disableddoor${getDepthBlock()}.png');
             disabledDoor.setGraphic(disabledDoorImg);
             disabledDoor.x -= (disabledDoorImg.width - Segment.TILE_SIZE)/2;
-            disabledDoor.x += player.width/2;
+            disabledDoor.x += getPlayerOne().width/2;
             disabledDoor.y += Segment.TILE_SIZE - disabledDoorImg.height;
             disabledDoor.layer = 40;
             var shaftHeight = 700 * 5;
@@ -398,7 +422,7 @@ class GameScene extends Scene {
             );
             disabledShaft.setGraphic(disabledShaftImg);
             disabledShaft.x -= (disabledShaftImg.width - Segment.TILE_SIZE)/2;
-            disabledShaft.x += player.width/2;
+            disabledShaft.x += getPlayerOne().width/2;
             disabledShaft.y += Segment.TILE_SIZE - shaftHeight;
             disabledShaft.layer = 60;
         }
@@ -411,7 +435,7 @@ class GameScene extends Scene {
     private function addKeyAndDoor() {
         var keyPoint = getRandomOpenGroundPoint();
         var doorPoint = getRandomOpenGroundPoint(3);
-        var playerPoint = new Vector2(player.x, player.y);
+        var playerPoint = new Vector2(getPlayerOne().x, getPlayerOne().y);
         for (i in 0...MAX_PLACEMENT_RETRIES) {
             var newKeyPoint = getRandomOpenGroundPoint();
             var newDoorPoint = getRandomOpenGroundPoint(3);
@@ -463,8 +487,8 @@ class GameScene extends Scene {
         }
         for(arrowPoint in arrowPoints) {
             var awayFromPlayer = new Vector2(
-                player.centerX - arrowPoint.point.x,
-                player.centerY - arrowPoint.point.y
+                getPlayerOne().centerX - arrowPoint.point.x,
+                getPlayerOne().centerY - arrowPoint.point.y
             );
             awayFromPlayer.inverse();
             awayFromPlayer.normalize(Arrow.INITIAL_VELOCITY);
@@ -920,7 +944,7 @@ class GameScene extends Scene {
         enemyType:String, existingPoints:Array<SegmentPoint>,
         ignoreDistanceRequirement:Bool = false
     ) {
-        var playerPoint = new Vector2(player.x, player.y);
+        var playerPoint = new Vector2(getPlayerOne().x, getPlayerOne().y);
         var isValid = false;
         var enemyPoint:SegmentPoint = null;
         var count = 0;
@@ -958,7 +982,7 @@ class GameScene extends Scene {
                 }
             }
             if(enemyType == "ground") {
-                if(enemyPoint.point.y + Segment.TILE_SIZE == player.bottom) {
+                if(enemyPoint.point.y + Segment.TILE_SIZE == getPlayerOne().bottom) {
                     isValid = false;
                     continue;
                 }
@@ -1229,7 +1253,7 @@ class GameScene extends Scene {
         }
 
         MemoryEntity.clearSfxQueue();
-        if(curtain.graphic.alpha <= 0.95 && player.visible) {
+        if(curtain.graphic.alpha <= 0.95 && getPlayerOne().visible) {
             // This screwy code duplication is because of a weird issue
             // where setting the camera before super.update() causes
             // jitter, but setting it after screws up the fade in
@@ -1241,7 +1265,7 @@ class GameScene extends Scene {
         if(depth == 7) {
             return;
         }
-        camera.x = Math.floor(player.x - HXP.width/2);
-        camera.y = Math.floor(player.y - HXP.height/2);
+        camera.x = Math.floor(getPlayerMidpoint().x - HXP.width/2);
+        camera.y = Math.floor(getPlayerMidpoint().y - HXP.height/2);
     }
 }
