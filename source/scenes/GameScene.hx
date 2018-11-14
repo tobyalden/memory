@@ -87,7 +87,7 @@ class GameScene extends Scene {
 
         fillEmptySegments();
 
-        var playerPoint = addPlayer();
+        var playerPoint = addPlayers(2);
         var keyAndDoorPoints = addKeyAndDoor();
         var enemyPoints = addEnemies();
         addHeart(
@@ -352,12 +352,14 @@ class GameScene extends Scene {
         }
     }
 
-    private function addPlayer() {
+    private function addPlayers(numPlayers:Int = 1) {
         var playerStart = getRandomOpenGroundPoint(3);
-        player = new Player(playerStart.point.x, playerStart.point.y);
-        player.x += 3;
-        player.y += Segment.TILE_SIZE - player.height;
-        add(player);
+        for(i in 0...numPlayers) {
+            player = new Player(playerStart.point.x, playerStart.point.y, i + 1);
+            player.x += 3 + 20 * i;
+            player.y += Segment.TILE_SIZE - player.height;
+            add(player);
+        }
         var disabledDoor = new MemoryEntity(
             playerStart.point.x, playerStart.point.y
         );

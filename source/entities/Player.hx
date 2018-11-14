@@ -51,6 +51,8 @@ class Player extends MemoryEntity {
     public static var maxHealth:Int;
     public static var quiver:Int;
 
+    public var playerNumber(default, null):Int;
+
     private var isCrouching:Bool;
     private var wasCrouching:Bool;
     private var isTurning:Bool;
@@ -87,8 +89,9 @@ class Player extends MemoryEntity {
         updateHeartDisplay();
     }
 
-    public function new(x:Float, y:Float) {
+    public function new(x:Float, y:Float, playerNumber:Int = 1) {
 	    super(x, y);
+        this.playerNumber = playerNumber;
         MemoryEntity.loadSfx([
             "arrowshoot1", "arrowshoot2", "arrowshoot3", "arrowdraw",
             "outofarrows", "playerdeath", "runloop", "walkloop", "slide",
@@ -97,7 +100,8 @@ class Player extends MemoryEntity {
         ]);
         type = "player";
         name = "player";
-        sprite = new Spritemap("graphics/player.png", 24, 32);
+        var spriteSuffix = playerNumber == 1 ? "" : "2";
+        sprite = new Spritemap('graphics/player${spriteSuffix}.png', 24, 32);
         sprite.add("idle", [2, 1, 0, 1], 2);
         sprite.add("run", [4, 5, 6, 7, 8, 9], 10);
         sprite.add("walk", [4, 5, 6, 7, 8, 9], 5);
@@ -111,7 +115,9 @@ class Player extends MemoryEntity {
         sprite.y = -8;
         addGraphic(sprite);
 
-        armsAndBow = new Spritemap("graphics/armsandbow.png", 24, 32);
+        armsAndBow = new Spritemap(
+            'graphics/armsandbow${spriteSuffix}.png', 24, 32
+        );
         armsAndBow.y = -8;
         armsAndBow.add("idle", [0]);
         armsAndBow.add("idle_forward", [1]);
@@ -431,8 +437,8 @@ class Player extends MemoryEntity {
 
     private function movement() {
         isTurning = (
-            Main.inputCheck("left") && velocity.x > 0 ||
-            Main.inputCheck("right") && velocity.x < 0
+            Main.inputCheck("left", playerNumber) && velocity.x > 0 ||
+            Main.inputCheck("right", playerNumber) && velocity.x < 0
         );
 
         // If the player is changing directions or just starting to move,
@@ -466,10 +472,10 @@ class Player extends MemoryEntity {
         if(isCrouching) {
             velocity.x = 0;
         }
-        else if(Main.inputCheck("left")) {
+        else if(Main.inputCheck("left", playerNumber)) {
             velocity.x -= accel * accelMultiplier;
         }
-        else if(Main.inputCheck("right")) {
+        else if(Main.inputCheck("right", playerNumber)) {
             velocity.x += accel * accelMultiplier;
         }
         else {
@@ -487,7 +493,7 @@ class Player extends MemoryEntity {
         // Check if the player is jumping or falling
         if(isOnGround()) {
             velocity.y = 0;
-            if(Main.inputPressed("jump")) {
+            if(Main.inputPressed("jump", playerNumber)) {
                 velocity.y = -JUMP_POWER;
                 MemoryEntity.allSfx["jump"].play();
                 scaleY(JUMP_STRETCH);
@@ -501,10 +507,10 @@ class Player extends MemoryEntity {
             else {
                 velocity.y += wallGravity;
             }
-            if(Main.inputReleased("jump")) {
+            if(Main.inputReleased("jump", playerNumber)) {
                 velocity.y = Math.max(-JUMP_CANCEL_POWER, velocity.y);
             }
-            if(Main.inputPressed("jump")) {
+            if(Main.inputPressed("jump", playerNumber)) {
                 velocity.y = -WALL_JUMP_POWER_Y;
                 scaleY(WALL_JUMP_STRETCH_Y);
                 MemoryEntity.allSfx["jump"].play();
@@ -522,7 +528,7 @@ class Player extends MemoryEntity {
         }
         else {
             velocity.y += gravity;
-            if(Main.inputReleased("jump")) {
+            if(Main.inputReleased("jump", playerNumber)) {
                 velocity.y = Math.max(-JUMP_CANCEL_POWER, velocity.y);
             }
         }
@@ -530,7 +536,7 @@ class Player extends MemoryEntity {
         // Cap the player's velocity
         var maxVelocity:Float = MAX_AIR_VELOCITY;
         if(isOnGround()) {
-            if(Main.inputCheck("act")) {
+            if(Main.inputCheck("act", playerNumber)) {
                 maxVelocity = MAX_AIM_VELOCITY;
             }
             else {
@@ -571,36 +577,36 @@ class Player extends MemoryEntity {
         if(!isOnGround() && isOnWall()) {
             return;
         }
-        if(Main.inputPressed("act")) {
+        if(Main.inputPressed("act", playerNumber)) {
             if(quiver <= 0) {
                 MemoryEntity.allSfx["outofarrows"].play();
                 return;
             }
             MemoryEntity.allSfx["arrowdraw"].play();
         }
-        else if(Main.inputReleased("act")) {
+        else if(Main.inputReleased("act", playerNumber)) {
             if(quiver <= 0) {
                 return;
             }
             var direction:Vector2;
             var arrow:Arrow;
-            if(Main.inputCheck("up")) {
+            if(Main.inputCheck("up", playerNumber)) {
                 direction = new Vector2(0, -1);
-                if(Main.inputCheck("left")) {
+                if(Main.inputCheck("left", playerNumber)) {
                     direction.x = -1;
                 }
-                else if(Main.inputCheck("right")) {
+                else if(Main.inputCheck("right", playerNumber)) {
                     direction.x = 1;
                 }
                 arrow = new Arrow(centerX, centerY, direction, true);
             }
-            else if(Main.inputCheck("down") && !isOnGround()) {
+            else if(Main.inputCheck("down", playerNumber) && !isOnGround()) {
                 direction = new Vector2(0, 1);
-                if(Main.inputCheck("left")) {
+                if(Main.inputCheck("left", playerNumber)) {
                     direction.x = -1;
                     direction.y = 0.75;
                 }
-                else if(Main.inputCheck("right")) {
+                else if(Main.inputCheck("right", playerNumber)) {
                     direction.x = 1;
                     direction.y = 0.75;
                 }
@@ -608,10 +614,10 @@ class Player extends MemoryEntity {
             }
             else {
                 direction = new Vector2(0, -Arrow.INITIAL_LIFT);
-                if(Main.inputCheck("left")) {
+                if(Main.inputCheck("left", playerNumber)) {
                     direction.x = -1;
                 }
-                else if(Main.inputCheck("right")) {
+                else if(Main.inputCheck("right", playerNumber)) {
                     direction.x = 1;
                 }
                 else {
@@ -722,7 +728,7 @@ class Player extends MemoryEntity {
                 }
             }
             else {
-                if(Main.inputCheck("act")) {
+                if(Main.inputCheck("act", playerNumber)) {
                     spriteAnimationName = "walk";
                 }
                 else {
@@ -772,11 +778,17 @@ class Player extends MemoryEntity {
         if(!isOnGround() && isOnWall()) {
             sprite.flipX = false;
         }
-        else if(Main.inputCheck("left") && !(isOnGround() && isTurning)) {
+        else if(
+            Main.inputCheck("left", playerNumber)
+            && !(isOnGround() && isTurning)
+        ) {
             sprite.flipX = true;
             armsAndBow.flipX = true;
         }
-        else if(Main.inputCheck("right") && !(isOnGround() && isTurning)) {
+        else if(
+            Main.inputCheck("right", playerNumber)
+            && !(isOnGround() && isTurning)
+        ) {
             sprite.flipX = false;
             armsAndBow.flipX = false;
         }
@@ -790,29 +802,35 @@ class Player extends MemoryEntity {
             armsAndBow.play("empty");
             armsAndBow.y = -8;
         }
-        else if(Main.inputCheck("act") && quiver > 0) {
+        else if(Main.inputCheck("act", playerNumber) && quiver > 0) {
             var suffix:String;
             if(isCrouching) {
                 spriteAnimationName = "idle";
                 suffix = "_forward";
             }
             else if(
-                Main.inputCheck("up")
-                && !(Main.inputCheck("right") || Main.inputCheck("left"))
+                Main.inputCheck("up", playerNumber)
+                && !(
+                    Main.inputCheck("right", playerNumber)
+                    || Main.inputCheck("left", playerNumber)
+                )
             ) {
                 suffix = "_up";
             }
             else if(
-                Main.inputCheck("down")
+                Main.inputCheck("down", playerNumber)
                 && !isOnGround()
-                && !(Main.inputCheck("right") || Main.inputCheck("left"))
+                && !(
+                    Main.inputCheck("right", playerNumber)
+                    || Main.inputCheck("left", playerNumber)
+                )
             ) {
                 suffix = "_down";
             }
-            else if(Main.inputCheck("up")) {
+            else if(Main.inputCheck("up", playerNumber)) {
                 suffix = "_forwardup";
             }
-            else if(Main.inputCheck("down") && !isOnGround()) {
+            else if(Main.inputCheck("down", playerNumber) && !isOnGround()) {
                 suffix = "_forwarddown";
             }
             else {

@@ -38,6 +38,13 @@ class Main extends Engine {
         Key.define("jump", [Key.Z, Key.SPACE, Key.ENTER]);
         Key.define("act", [Key.X]);
 
+        Key.define("2P_left", [Key.A]);
+        Key.define("2P_right", [Key.D]);
+        Key.define("2P_up", [Key.W]);
+        Key.define("2P_down", [Key.S]);
+        Key.define("2P_jump", [Key.Q]);
+        Key.define("2P_act", [Key.E]);
+
         gamepad = Gamepad.gamepad(0);
         Gamepad.onConnect.bind(function(newGamepad:Gamepad) {
             if(gamepad == null) {
@@ -57,9 +64,10 @@ class Main extends Engine {
         }
     }
 
-    public static function inputPressed(inputName:String) {
-        if(gamepad == null || Input.pressed(inputName)) {
-            return Input.pressed(inputName);
+    public static function inputPressed(inputName:String, playerNum:Int = 1) {
+        var playerPrefix = playerNum == 1 ? "" : "2P_";
+        if(gamepad == null || Input.pressed(playerPrefix + inputName)) {
+            return Input.pressed(playerPrefix + inputName);
         }
         if(inputName == "jump") {
             if(!previousJumpHeld && gamepad.check(XboxGamepad.A_BUTTON)) {
@@ -72,9 +80,10 @@ class Main extends Engine {
         return false;
     }
 
-    public static function inputReleased(inputName:String) {
-        if(gamepad == null || Input.released(inputName)) {
-            return Input.released(inputName);
+    public static function inputReleased(inputName:String, playerNum:Int = 1) {
+        var playerPrefix = playerNum == 1 ? "" : "2P_";
+        if(gamepad == null || Input.released(playerPrefix + inputName)) {
+            return Input.released(playerPrefix + inputName);
         }
         if(inputName == "jump") {
             if(previousJumpHeld && !gamepad.check(XboxGamepad.A_BUTTON)) {
@@ -87,15 +96,16 @@ class Main extends Engine {
         return false;
     }
 
-    public static function inputCheck(inputName:String) {
-        if(gamepad == null || Input.check(inputName)) {
-            if(inputName == "left" && Input.check("right")) {
+    public static function inputCheck(inputName:String, playerNum:Int = 1) {
+        var playerPrefix = playerNum == 1 ? "" : "2P_";
+        if(gamepad == null || Input.check(playerPrefix + inputName)) {
+            if(inputName == "left" && Input.check(playerPrefix + "right")) {
                 return false;
             }
-            if(inputName == "right" && Input.check("left")) {
+            if(inputName == "right" && Input.check(playerPrefix + "left")) {
                 return false;
             }
-            return Input.check(inputName);
+            return Input.check(playerPrefix + inputName);
         }
         if(inputName == "jump") {
             return gamepad.check(XboxGamepad.A_BUTTON);
