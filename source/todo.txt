@@ -7,3 +7,10 @@ FINAL TOUCHES:
 THINGS THAT WOULD BE NICE:
 - make new segments
 - flip segments horizontally
+
+COOP TODO:
+- add controller support
+- fix enemies
+- fix death
+- fix boss fight
+- fix camera

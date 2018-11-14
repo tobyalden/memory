@@ -64,7 +64,7 @@ class Door extends MemoryEntity {
     }
 
     public override function update() {
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         if(
             !isDoorOpen
             && isOpen

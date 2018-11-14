@@ -44,7 +44,7 @@ class RoboPlant extends MemoryEntity {
     }
 
     override public function update() {
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         var towardsPlayer = new Vector2(
             player.centerX - centerX, player.centerY - centerY
         );

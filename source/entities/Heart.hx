@@ -36,15 +36,13 @@ class Heart extends MemoryEntity {
         }
         else {
             sprite.alpha = 1;
-            var _player = scene.getInstance("player");
+            var _player = collide("player", x, y);
             if(_player != null) {
                 var player = cast(_player, Player);
-                if(collideWith(player, x, y) != null) {
-                    player.pickUpHeart();
-                    explode(2, 0.1);
-                    MemoryEntity.allSfx["heart"].play();
-                    scene.remove(this);
-                }
+                player.pickUpHeart();
+                explode(2, 0.1);
+                MemoryEntity.allSfx["heart"].play();
+                scene.remove(this);
             }
         }
         super.update();

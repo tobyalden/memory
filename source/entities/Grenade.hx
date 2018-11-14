@@ -55,7 +55,6 @@ class Grenade extends MemoryEntity {
     }
 
     override public function update() {
-        var player = scene.getInstance("player");
         var gravity = GRAVITY * Main.getDelta();
         velocity.y += gravity;
         velocity.y = Math.min(velocity.y, MAX_FALL_VELOCITY);
@@ -68,8 +67,6 @@ class Grenade extends MemoryEntity {
 
     public override function moveCollideX(e:Entity) {
         velocity.x = -velocity.x * BOUNCE_FACTOR;
-        var player = scene.getInstance("player");
-        var volume = (Math.max(1, distanceFrom(player, true)) / 350);
         bounceSfxs[Std.random(bounceSfxs.length)].play();
         return true;
     }

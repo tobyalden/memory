@@ -60,6 +60,14 @@ class Roombad extends MemoryEntity {
 
     override public function update() {
         var player = cast(scene.getInstance("player"), Player);
+        var players = new Array<Entity>();
+        scene.getType("player", players);
+        for(p in players) {
+            if(bottom == p.bottom && cast(p, Player).isOnGround()) {
+                player = cast(p, Player);
+            }
+        }
+
         if(bottom == player.bottom && player.isOnGround()) {
             isChasing = true;
             if(x < player.x) {

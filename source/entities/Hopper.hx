@@ -81,7 +81,7 @@ class Hopper extends MemoryEntity {
     }
 
     private function jump() {
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         if(
             !isOnScreen()
             || distanceFrom(player, true) > ACTIVE_RANGE

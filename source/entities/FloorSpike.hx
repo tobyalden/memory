@@ -46,15 +46,18 @@ class FloorSpike extends MemoryEntity {
     }
 
     override public function update() {
-        var player = cast(scene.getInstance("player"), Player);
-        if(
-            collideWith(player, x, y) != null
-            && player.isOnGround()
-            && !isActive
-            && !activateTimer.active
-        ) {
-            activateTimer.start();
-            MemoryEntity.allSfx["spikewarning"].play();
+        var players = new Array<Entity>();
+        scene.getType("player", players);
+        for(player in players) {
+            if(
+                collideWith(player, x, y) != null
+                && cast(player, Player).isOnGround()
+                && !isActive
+                && !activateTimer.active
+            ) {
+                activateTimer.start();
+                MemoryEntity.allSfx["spikewarning"].play();
+            }
         }
     }
 

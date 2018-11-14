@@ -69,7 +69,7 @@ class Bouncer extends MemoryEntity {
     }
 
     override public function update() {
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         if(!hum.playing && !soundsStopped) {
             hum.loop();
         }
@@ -90,7 +90,7 @@ class Bouncer extends MemoryEntity {
     }
 
     private function animation() {
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         sprite.flipX = velocity.x > 0;
         lightning.visible = stopFlasher.active || isSparking;
     }

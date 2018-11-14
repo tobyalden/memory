@@ -70,7 +70,7 @@ class Turret extends MemoryEntity {
     }
 
     private function lob() {
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         if(!isOnScreen()) {
             return;
         }
@@ -99,7 +99,7 @@ class Turret extends MemoryEntity {
 
     private function animation() {
         lightning.visible = stopFlasher.active;
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         if(x > player.x) {
             sprite.play(isAncipatingLob ? "leftprepare" : "left");
         }

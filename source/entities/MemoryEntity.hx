@@ -86,6 +86,18 @@ class MemoryEntity extends Entity {
         health = 3;
     }
 
+    private function getClosestPlayer() {
+        var players = new Array<Entity>();
+        scene.getType("player", players);
+        var closestPlayer = players[0];
+        for(player in players) {
+            if(distanceFrom(player, true) < distanceFrom(closestPlayer)) {
+                closestPlayer = player;
+            }
+        }
+        return closestPlayer;
+    }
+
     private function die() {
         scene.remove(this);
         var arrows = detachArrows();

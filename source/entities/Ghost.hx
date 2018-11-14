@@ -40,7 +40,7 @@ class Ghost extends MemoryEntity {
     }
 
     override public function update() {
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         var wasActive = isActive;
         if(distanceFrom(player, true) < ACTIVATE_DISTANCE) {
             isActive = true;
@@ -86,7 +86,7 @@ class Ghost extends MemoryEntity {
     }
 
     private function animation() {
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         sprite.flipX = centerX > player.centerX;
         if(collidable) {
             sprite.play("idle");

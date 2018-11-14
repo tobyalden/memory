@@ -40,7 +40,7 @@ class Mine extends MemoryEntity {
     }
 
     override public function update() {
-        var player = scene.getInstance("player");
+        var player = getClosestPlayer();
         var playerDistance = distanceFrom(player, true);
         if(
             distanceFrom(player, true) < DETONATE_DISTANCE
