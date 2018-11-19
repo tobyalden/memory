@@ -83,6 +83,15 @@ class Player extends MemoryEntity {
         return true;
     }
 
+    static public function areAllPlayersDead() {
+        for(playerStat in playerStats) {
+            if(playerStat.health != playerStat.maxHealth) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public function setStartingHealthAndArrows() {
         if(GameScene.depth == 1) {
             playerStats[playerNumber] = {health: 0, maxHealth: 0, quiver: 0};
@@ -451,11 +460,14 @@ class Player extends MemoryEntity {
             scene.add(explosion);
             count++;
         }
-        var resetTimer = new Alarm(1.75, TweenType.OneShot);
-        resetTimer.onComplete.bind(function() {
-            cast(scene, GameScene).onDeath();
-        });
-        addTween(resetTimer, true);
+        if(areAllPlayersDead()) {
+            var resetTimer = new Alarm(1.75, TweenType.OneShot);
+            resetTimer.onComplete.bind(function() {
+                cast(scene, GameScene).onDeath();
+            });
+            addTween(resetTimer, true);
+        }
+
 #if desktop
         Sys.sleep(0.02);
 #end

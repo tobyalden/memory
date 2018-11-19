@@ -1,16 +1,12 @@
 ACTUAL TODO:
+- add delay before moving off wall
 
 FINAL TOUCHES:
 + disable up/down scroll keys in JS
 + remove debug controls
 
-THINGS THAT WOULD BE NICE:
-- make new segments
-- flip segments horizontally
-
 COOP TODO:
 - add controller support
-- fix enemies
 - fix death
 - fix boss fight
-- fix camera
+- fix camera (maybe teleport one player to the other? or just solid borders?)
